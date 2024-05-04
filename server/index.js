@@ -6,7 +6,7 @@ const PORT = 5000;
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: ["*"], methods: ["POST", "GET"] }));
+app.use(cors({ origin: ["*"], methods: ["POST", "GET"], credentials: true }));
 
 // Connect to MongoDB
 /* mongoose
