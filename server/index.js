@@ -6,14 +6,14 @@ const PORT = 5000;
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: ["https://crm-three-green.vercel.app"], methods: ["POST", "GET"], credentials: true }));
+app.use(cors({ origin: "*", methods: ["POST", "GET"], credentials: true }));
 
 // Connect to MongoDB
-/* mongoose
-  .connect("mongodb://localhost:27017/crm")
+mongoose
+  .connect("mongodb+srv://dmurroni:Linkinpark93!@cluster0.lmwsi5s.mongodb.net/crm?retryWrites=true&w=majority&appName=Cluster0")
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
- */
+
 // Routes
 app.use("/api", require("./routes/api"));
 
