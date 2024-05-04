@@ -1,7 +1,7 @@
 function App() {
   const sendEmail = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/send-email", {
+      const response = await fetch("https://crm-three-green.vercel.app/api/send-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
