@@ -6,7 +6,7 @@ const PORT = 5000;
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: ["*"], methods: ["POST", "GET"], credentials: true }));
+app.use(cors({ origin: [""], methods: ["POST", "GET"], credentials: true }));
 
 // Connect to MongoDB
 /* mongoose
@@ -17,9 +17,8 @@ app.use(cors({ origin: ["*"], methods: ["POST", "GET"], credentials: true }));
 // Routes
 app.use("/api", require("./routes/api"));
 
+app.get("/", (req, res) => {
+  res.json("Hello");
+});
 // Start server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-app.get("/", (req, res) => {
-  res.json("hello");
-});
