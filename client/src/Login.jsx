@@ -5,25 +5,6 @@ import { useAuth } from "./auth/AuthContext";
 const LoginForm = ({ onSuccess }) => {
   const { login } = useAuth();
   const [error, setError] = useState("");
-  const [clients, setClients] = useState([]);
-
-  useEffect(() => {
-    async function fetchClients() {
-      try {
-        const response = await fetch("https://crm-three-green.vercel.app/api/clients");
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const clientsData = await response.json();
-        setClients(clientsData);
-        console.log(clientsData);
-      } catch (error) {
-        console.error("Error fetching clients from backend:", error);
-      }
-    }
-
-    fetchClients();
-  }, []);
 
   const handleLogin = async (authCredentials) => {
     try {

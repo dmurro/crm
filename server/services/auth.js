@@ -1,18 +1,20 @@
+import axios from "axios"; // Import Axios library
+
 const apiUrl = "https://crm-three-green.vercel.app"; // Your backend API URL
 
 export const login = async (credentials) => {
   try {
-    const response = await fetch(`${apiUrl}/api/login`, {
-      method: "POST",
+    const response = await axios.post(`${apiUrl}/api/login`, credentials, {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(credentials),
     });
-    if (!response.ok) {
+
+    if (response.status !== 200) {
       throw new Error("Invalid username or password");
     }
-    const data = await response.json();
+
+    const data = response.data;
     console.log(data);
     return data;
   } catch (error) {

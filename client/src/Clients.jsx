@@ -1,24 +1,24 @@
 import { Flex, Table } from "antd";
+import axios from "axios";
 import { useEffect, useState } from "react";
 
 function Clients() {
   const [clients, setClients] = useState([]);
   /* const backendURL = "http://localhost:5000"; */
-  
+
   useEffect(() => {
     async function fetchClients() {
       try {
-        const response = await fetch("https://crm-three-green.vercel.app/api/clients");
-        if (!response.ok) {
+        const response = await axios.get("https://crm-three-green.vercel.app/api/clients");
+        if (response.status !== 200) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        const clientsData = await response.json();
+        const clientsData = response.data;
         setClients(clientsData);
       } catch (error) {
         console.error("Error fetching clients from backend:", error);
       }
     }
-
     fetchClients();
   }, []);
 
