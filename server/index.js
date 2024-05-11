@@ -14,8 +14,8 @@ app.use(cors({ origin: "*", methods: ["POST", "GET"], credentials: true }));
 
 // Connect to MongoDB
 mongoose
-  /* .connect("mongodb+srv://dmurroni:Linkinpark93!@cluster0.lmwsi5s.mongodb.net/crm?retryWrites=true&w=majority&appName=Cluster0") */
-  .connect("mongodb://localhost:27017/crm")
+  .connect("mongodb+srv://dmurroni:Linkinpark93!@cluster0.lmwsi5s.mongodb.net/crm?retryWrites=true&w=majority&appName=Cluster0")
+  /* .connect("mongodb://localhost:27017/crm") */
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 

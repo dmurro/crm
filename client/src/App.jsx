@@ -8,6 +8,7 @@ import theme from "./resources/themes";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import PrivateRoute from "./auth/PrivateRoute";
+import Navigation from "./Navigation";
 
 function App() {
   const { isLoggedIn } = useAuth();
@@ -18,6 +19,7 @@ function App() {
   console.log(isLoggedIn);
   return (
     <ConfigProvider theme={theme}>
+      <Navigation />
       <AuthProvider>
         <Fragment>
           <Routes>

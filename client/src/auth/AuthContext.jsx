@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (authCredentials, onSuccess) => {
     try {
-      const response = await axios.post("http://localhost:5000/api/login", authCredentials);
+      const response = await axios.post("https://crm-three-green.vercel.app/api/login", authCredentials);
       const { token } = await response.data;
       localStorage.setItem("auth", JSON.stringify({ jwt: token }));
       setIsLoggedIn(true);

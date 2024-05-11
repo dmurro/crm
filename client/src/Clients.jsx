@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 
 function Clients() {
   const [clients, setClients] = useState([]);
-  /* const backendURL = "https://crm-three-green.vercel.app"; */
+  /* const backendURL = "http://localhost:5000"; */
+  
   useEffect(() => {
     async function fetchClients() {
       try {
-        const response = await fetch("http://localhost:5000/api/clients");
+        const response = await fetch("https://crm-three-green.vercel.app/api/clients");
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
