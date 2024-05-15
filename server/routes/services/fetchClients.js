@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
 // Define MongoDB connection string and database name
-const mongoURI = "mongodb+srv://dmurroni:Linkinpark93!@cluster0.lmwsi5s.mongodb.net/crm?retryWrites=true&w=majority&appName=Cluster0";
+/* const mongoURI = "mongodb+srv://dmurroni:Linkinpark93!@cluster0.lmwsi5s.mongodb.net/crm?retryWrites=true&w=majority&appName=Cluster0";
+ */ const mongoURI = "mongodb+srv://dmurroni:Linkinpark93!@cluster0.lmwsi5s.mongodb.net/";
 
 // Connect to MongoDB
 mongoose
