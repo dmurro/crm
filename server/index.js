@@ -10,7 +10,7 @@ const PORT = 5000;
 // Middleware
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cors({ origin: "*", methods: ["POST", "GET"], credentials: true }));
+app.use(cors());
 
 // Connect to MongoDB
 mongoose
