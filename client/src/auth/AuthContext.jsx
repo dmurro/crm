@@ -1,5 +1,4 @@
 import { createContext, useState, useContext } from "react";
-import axios from "axios";
 
 const AuthContext = createContext();
 
@@ -13,14 +12,24 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (authCredentials, onSuccess) => {
     try {
-      const response = await axios.post("https://crm-three-green.vercel.app/api/login", authCredentials);
-      const { token } = await response.data;
+      const response = await fetch("https://crm-three-green.vercel.app/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(authCredentials),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message);
+      }
+      const { token } = await response.json();
       localStorage.setItem("auth", JSON.stringify({ jwt: token }));
       setIsLoggedIn(true);
       setError(null);
       onSuccess();
     } catch (error) {
-      setError(error.response.data.message);
+      setError(error.message);
       throw error;
     }
   };

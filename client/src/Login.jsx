@@ -8,10 +8,22 @@ const LoginForm = ({ onSuccess }) => {
 
   const handleLogin = async (authCredentials) => {
     try {
-      await login(authCredentials, onSuccess);
+      const response = await fetch("your_login_endpoint", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(authCredentials),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message);
+      }
+      const userData = await response.json();
+      await login(userData, onSuccess);
       message.success("Login successful");
     } catch (error) {
-      setError(error.response.data.message);
+      setError(error.message);
     }
   };
 
