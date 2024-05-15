@@ -10,7 +10,14 @@ const PORT = 5000;
 // Middleware
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "*", // Allow requests from any origin
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allow all HTTP methods
+    allowedHeaders: "Content-Type,Authorization", // Allow specified headers
+    exposedHeaders: "Content-Length, X-Content-Length", // Allow additional headers to be exposed to the browser
+  })
+);
 
 // Connect to MongoDB
 mongoose
