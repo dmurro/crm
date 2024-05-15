@@ -10,14 +10,9 @@ const PORT = 5000;
 // Middleware
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(
-  cors({
-    origin: "*", // Allow requests from any origin
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allow all HTTP methods
-    allowedHeaders: "Content-Type,Authorization", // Allow specified headers
-    exposedHeaders: "Content-Length, X-Content-Length", // Allow additional headers to be exposed to the browser
-  })
-);
+
+// Enable CORS with custom options
+app.use(cors());
 
 // Connect to MongoDB
 mongoose
@@ -32,6 +27,8 @@ app.use("/api", require("./routes/api"));
 app.get("/", (req, res) => {
   res.json("Hello");
 });
+
+app.options("/api/login", cors()); // Handle preflight request for login route
 
 app.post("/api/login", async (req, res) => {
   try {
