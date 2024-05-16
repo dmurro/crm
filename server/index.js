@@ -13,6 +13,7 @@ app.use(bodyParser.json());
 
 // Enable CORS
 app.use(cors());
+app.options("*", cors());
 
 // Custom middleware to set headers
 app.use((req, res, next) => {
@@ -30,8 +31,8 @@ app.use((req, res, next) => {
 
 // Connect to MongoDB
 mongoose
-  /* .connect("mongodb+srv://dmurroni:Linkinpark93!@cluster0.lmwsi5s.mongodb.net/crm?retryWrites=true&w=majority&appName=Cluster0") */
-  .connect("mongodb+srv://dmurroni:Linkinpark93!@cluster0.lmwsi5s.mongodb.net/")
+  .connect("mongodb+srv://dmurroni:Linkinpark93!@cluster0.lmwsi5s.mongodb.net/crm?retryWrites=true&w=majority&appName=Cluster0")
+  /* .connect("mongodb+srv://dmurroni:Linkinpark93!@cluster0.lmwsi5s.mongodb.net/") */
   /* .connect("mongodb://localhost:27017/crm") */
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
