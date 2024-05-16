@@ -2,7 +2,7 @@ const apiUrl = "https://crm-three-green.vercel.app"; // Your backend API URL
 
 export const login = async (credentials) => {
   try {
-    const response = await fetch(`${apiUrl}/api/login`, {
+    const response = await fetch(`http://localhost:5000/api/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (authCredentials, onSuccess) => {
     try {
-      const response = await fetch("https://crm-three-green.vercel.app/api/login", {
+      const response = await fetch("https://crm-three-green.vercel.app/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
