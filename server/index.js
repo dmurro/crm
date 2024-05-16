@@ -12,8 +12,15 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 // Enable CORS
+const corsOptions = {
+  origin: "https://admin.fishplanetlondon.co.uk", //(https://your-client-app.com)
+  optionsSuccessStatus: 200,
+};
 app.use(cors());
-app.options("*", cors());
+app.options("/*", (_, res) => {
+  console.log(res);
+  res.sendStatus(200);
+});
 
 // Custom middleware to set headers
 app.use((req, res, next) => {
