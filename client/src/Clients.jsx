@@ -7,7 +7,7 @@ function Clients() {
   useEffect(() => {
     async function fetchClients() {
       try {
-        const response = await fetch("https://crm-three-green.vercel.app/api/clients");
+        const response = await fetch("https://crm-three-green.vercel.app/clients");
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
