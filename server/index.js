@@ -12,24 +12,7 @@ const PORT = 5000;
 app.use(express.json());
 app.use(bodyParser.json());
 
-// Enable CORS
-const corsOptions = {
-  origin: "*", // or specific origin
-  optionsSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
-app.options("/*", (_, res) => {
-  res.sendStatus(200);
-});
-
-// Custom middleware to set headers
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  res.setHeader("Custom-Header", "Custom Value");
-  next();
-});
+app.use(cors());
 
 // Connect to MongoDB
 mongoose
@@ -48,3 +31,5 @@ app.use("/clients", clientsRouter);
 
 // Start server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports = app;
