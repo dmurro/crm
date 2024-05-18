@@ -1,4 +1,4 @@
-import { Flex, Table } from "antd";
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 
 function Clients() {
@@ -21,70 +21,46 @@ function Clients() {
   }, []);
 
   const columns = [
-    {
-      title: "Contact ID",
-      dataIndex: "CONTACT_ID",
-      key: "CONTACT_ID",
-    },
-    {
-      title: "Email",
-      dataIndex: "EMAIL",
-      key: "EMAIL",
-    },
-    {
-      title: "Last Name",
-      dataIndex: "LASTNAME",
-      key: "LASTNAME",
-    },
-    {
-      title: "First Name",
-      dataIndex: "FIRSTNAME",
-      key: "FIRSTNAME",
-    },
-    {
-      title: "SMS",
-      dataIndex: "SMS",
-      key: "SMS",
-    },
-    {
-      title: "Double Opt-In",
-      dataIndex: "DOUBLE_OPT_IN",
-      key: "DOUBLE_OPT_IN",
-    },
-    {
-      title: "Opt-In",
-      dataIndex: "OPT_IN",
-      key: "OPT_IN",
-    },
-    {
-      title: "WhatsApp",
-      dataIndex: "WHATSAPP",
-      key: "WHATSAPP",
-    },
-    {
-      title: "Landline Number",
-      dataIndex: "LANDLINE_NUMBER",
-      key: "LANDLINE_NUMBER",
-    },
-    {
-      title: "Added Time",
-      dataIndex: "ADDED_TIME",
-      key: "ADDED_TIME",
-      render: (date) => <span>{new Date(date).toLocaleDateString()}</span>,
-    },
-    {
-      title: "Modified Time",
-      dataIndex: "MODIFIED_TIME",
-      key: "MODIFIED_TIME",
-      render: (date) => <span>{new Date(date).toLocaleDateString()}</span>,
-    },
+    { id: "CONTACT_ID", label: "Contact ID" },
+    { id: "EMAIL", label: "Email" },
+    { id: "LASTNAME", label: "Last Name" },
+    { id: "FIRSTNAME", label: "First Name" },
+    { id: "SMS", label: "SMS" },
+    { id: "DOUBLE_OPT_IN", label: "Double Opt-In" },
+    { id: "OPT_IN", label: "Opt-In" },
+    { id: "WHATSAPP", label: "WhatsApp" },
+    { id: "LANDLINE_NUMBER", label: "Landline Number" },
+    { id: "ADDED_TIME", label: "Added Time", format: (date) => new Date(date).toLocaleDateString() },
+    { id: "MODIFIED_TIME", label: "Modified Time", format: (date) => new Date(date).toLocaleDateString() },
   ];
 
   return (
-    <Flex justify="center" vertical style={{ width: "100%" }}>
-      <h1>CLIENTS</h1>
-      <Table style={{ width: "100%", maxHeight: "90%" }} columns={columns} dataSource={clients} />
-    </Flex>
+    <Box p={2}>
+      <Typography variant="h3" align="center" gutterBottom>
+        CLIENTS
+      </Typography>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              {columns.map((column) => (
+                <TableCell key={column.id}>{column.label}</TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {clients.map((client) => (
+              <TableRow key={client.CONTACT_ID}>
+                {columns.map((column) => (
+                  <TableCell key={column.id}>{column.format ? column.format(client[column.id]) : client[column.id]}</TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 }
+
 export default Clients;
