@@ -11,7 +11,6 @@ const LoginForm = ({ onSuccess }) => {
     try {
       await login(authCredentials, onSuccess);
       setError("");
-      // Display success message, you can use Snackbar for this
     } catch (error) {
       setError(error.response.data.message);
     }

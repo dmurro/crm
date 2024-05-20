@@ -5,7 +5,7 @@ export const themeOptionsLight = {
   palette: {
     mode: "light",
     primary: {
-      main: "#e96199", // Pink
+      main: "#ff7043", // Pink
       light: "#ff94c2",
       dark: "#b0006b",
       contrastText: "#ffffff",
@@ -38,7 +38,7 @@ export const themeOptionsLight = {
     },
   },
   typography: {
-    fontFamily: "Roboto, Arial, sans-serif",
+    fontFamily: "Prompt, Arial, sans-serif",
     h1: {
       fontSize: "2.5rem",
       fontWeight: 700,
@@ -95,7 +95,7 @@ export const themeOptionsLight = {
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: "#3f51b5", // Indigo
+          backgroundColor: "#ff7043", // Indigo
         },
       },
     },
@@ -114,7 +114,7 @@ export const themeOptionsDark = {
   palette: {
     mode: "dark",
     primary: {
-      main: "#e96199", // Pink
+      main: "#ff7043", // Pink
       light: "#ff94c2",
       dark: "#b0006b",
       contrastText: "#ffffff",
@@ -147,7 +147,7 @@ export const themeOptionsDark = {
     },
   },
   typography: {
-    fontFamily: "Roboto, Arial, sans-serif",
+    fontFamily: "Prompt, Arial, sans-serif",
     h1: {
       fontSize: "2.5rem",
       fontWeight: 700,
@@ -204,7 +204,7 @@ export const themeOptionsDark = {
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: "#3f51b5", // Indigo
+          backgroundColor: "#ff7043", // Indigo
         },
       },
     },

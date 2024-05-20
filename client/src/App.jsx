@@ -1,15 +1,12 @@
 import { Fragment } from "react";
-import { Routes, Route } from "react-router-dom";
-import { ConfigProvider } from "antd";
-import LoginForm from "./Login";
-import "./App.css";
-import { AuthProvider, useAuth } from "./auth/AuthContext";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import PageLayout from "./Layout/PageLayout";
-import { Box, Container, IconButton } from "@mui/material";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
+import { Box, IconButton } from "@mui/material";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
+import { useAuth } from "./auth/AuthContext";
 import { useThemeToggle } from "./resources/ThemeToggleProvider";
+import LoginForm from "./Login";
 import Layout from "./Pages/Layout";
 import Clients from "./Clients";
 
@@ -18,9 +15,9 @@ function App() {
   const { isDarkMode, toggleTheme } = useThemeToggle();
   const navigate = useNavigate();
   const handleLoginSuccess = () => {
-    navigate("/dashboard");
+    navigate("/clients");
   };
-  console.log(isLoggedIn);
+
   return (
     <div>
       <Box
@@ -31,22 +28,28 @@ function App() {
           padding: 2,
         }}
       >
-        <IconButton onClick={toggleTheme} color="inherit">
-          {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
-        </IconButton>
-        {/* Your other components go here */}
+        {!isLoggedIn && (
+          <IconButton onClick={toggleTheme} color="inherit" style={{ marginRight: "2rem" }}>
+            <FontAwesomeIcon color={isDarkMode ? "#FFDC2E" : "#23232d"} icon={isDarkMode ? faSun : faMoon} />
+          </IconButton>
+        )}
       </Box>
       <Fragment>
         <Routes>
-          <Route path="/" element={<PageLayout />} />
-          <Route path="/dashboard" element={<Layout />} />
-          <Route path="/clients" element={<Clients />} />
           <Route path="/login" element={<LoginForm onSuccess={handleLoginSuccess} />} />
+          <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
+          <Route path="/" element={<Layout />}>
+            <Route path="clients" element={<Clients />} />
+          </Route>
         </Routes>
       </Fragment>
     </div>
   );
-  /*   return (
+}
+
+export default App;
+
+/*   return (
     <div>
       <AppBar position="static">
         <Toolbar>
@@ -71,9 +74,6 @@ function App() {
       </Container>
     </div>
   ); */
-}
-
-export default App;
 
 /* const sendEmail = async () => {
     try {
