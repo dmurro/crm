@@ -1,84 +1,68 @@
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, TablePagination } from "@mui/material";
-import { useEffect, useState } from "react";
+import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
+import { useClients } from "./services/queries";
+import { useClientsPagination } from "./components/clients/useClientsPagination";
+import ClientsTable from "./components/clients/ClientsTable";
+import ClientsCard from "./components/clients/ClientsCard";
+import ClientsLoading from "./components/clients/ClientsLoading";
+import ClientsError from "./components/clients/ClientsError";
 
 function Clients() {
-  const [clients, setClients] = useState([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { data: clients = [], isLoading, error } = useClients();
+  const { page, rowsPerPage, handleChangePage, handleChangeRowsPerPage, getPaginatedData } = useClientsPagination(10);
 
-  useEffect(() => {
-    async function fetchClients() {
-      try {
-        const response = await fetch("https://crm-three-green.vercel.app/clients");
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const clientsData = await response.json();
-        setClients(clientsData);
-      } catch (error) {
-        console.error("Error fetching clients from backend:", error);
-      }
-    }
-    fetchClients();
-  }, []);
+  const paginatedClients = getPaginatedData(clients);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+  if (isLoading) {
+    return <ClientsLoading />;
+  }
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const columns = [
-    { id: "CONTACT_ID", label: "Contact ID" },
-    { id: "EMAIL", label: "Email" },
-    { id: "LASTNAME", label: "Last Name" },
-    { id: "FIRSTNAME", label: "First Name" },
-    { id: "SMS", label: "SMS" },
-    { id: "DOUBLE_OPT_IN", label: "Double Opt-In" },
-    { id: "OPT_IN", label: "Opt-In" },
-    { id: "WHATSAPP", label: "WhatsApp" },
-    { id: "LANDLINE_NUMBER", label: "Landline Number" },
-    { id: "ADDED_TIME", label: "Added Time", format: (date) => new Date(date).toLocaleDateString() },
-    { id: "MODIFIED_TIME", label: "Modified Time", format: (date) => new Date(date).toLocaleDateString() },
-  ];
+  if (error) {
+    return <ClientsError error={error} />;
+  }
 
   return (
-    <Box p={2}>
-      <Typography variant="h3" align="center" gutterBottom>
+    <Box
+      sx={{
+        width: "100%",
+        overflow: "hidden",
+        p: { xs: 1, sm: 2, md: 3 },
+      }}
+    >
+      <Typography
+        variant="h3"
+        align="center"
+        gutterBottom
+        sx={{
+          fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" },
+          mb: { xs: 2, sm: 3 },
+          fontWeight: 700,
+        }}
+      >
         CLIENTS
       </Typography>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell key={column.id}>{column.label}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {clients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((client) => (
-              <TableRow key={client.CONTACT_ID}>
-                {columns.map((column) => (
-                  <TableCell key={column.id}>{column.format ? column.format(client[column.id]) : client[column.id]}</TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[15, 25, 50]}
-        component="div"
-        count={clients.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+
+      {isMobile ? (
+        <ClientsCard clients={paginatedClients} totalCount={clients.length} page={page} rowsPerPage={rowsPerPage} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} />
+      ) : (
+        <ClientsTable clients={paginatedClients} totalCount={clients.length} page={page} rowsPerPage={rowsPerPage} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} />
+      )}
+
+      {clients.length === 0 && (
+        <Box
+          sx={{
+            textAlign: "center",
+            py: 8,
+            color: "text.secondary",
+          }}
+        >
+          <Typography variant="h6">No clients found</Typography>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            There are no clients to display at this time.
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 }

@@ -9,14 +9,22 @@ import { useThemeToggle } from "./resources/ThemeToggleProvider";
 import LoginForm from "./Login";
 import Layout from "./Pages/Layout";
 import Clients from "./Clients";
+import Campaign from "./Pages/Campaign";
+import Models from "./Pages/Models";
+import PrivateRoute from "./auth/PrivateRoute";
+import Spinner from "./components/Spinner";
 
 function App() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
   const { isDarkMode, toggleTheme } = useThemeToggle();
   const navigate = useNavigate();
   const handleLoginSuccess = () => {
     navigate("/clients");
   };
+
+  if (isLoading) {
+    return <Spinner fullScreen message="Loading..." />;
+  }
 
   return (
     <div>
@@ -36,10 +44,18 @@ function App() {
       </Box>
       <Fragment>
         <Routes>
-          <Route path="/login" element={<LoginForm onSuccess={handleLoginSuccess} />} />
-          <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
-          <Route path="/" element={<Layout />}>
+          <Route path="/login" element={isLoggedIn ? <Navigate to="/clients" /> : <LoginForm onSuccess={handleLoginSuccess} />} />
+          <Route path="/" element={isLoggedIn ? <Navigate to="/clients" /> : <Navigate to="/login" />} />
+          <Route
+            element={
+              <PrivateRoute>
+                <Layout />
+              </PrivateRoute>
+            }
+          >
             <Route path="clients" element={<Clients />} />
+            <Route path="marketing/campaign" element={<Campaign />} />
+            <Route path="marketing/models" element={<Models />} />
           </Route>
         </Routes>
       </Fragment>
@@ -48,55 +64,3 @@ function App() {
 }
 
 export default App;
-
-/*   return (
-    <div>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6">My Themed App</Typography>
-        </Toolbar>
-      </AppBar>
-      <Container>
-        <Typography variant="h1" gutterBottom>
-          Welcome to My Themed App
-        </Typography>
-        <Card>
-          <CardContent>
-            <Typography variant="body1">This is a card component styled with the custom theme.</Typography>
-            <Button variant="contained" color="primary">
-              Primary Button
-            </Button>
-            <Button variant="contained" color="secondary">
-              Secondary Button
-            </Button>
-          </CardContent>
-        </Card>
-      </Container>
-    </div>
-  ); */
-
-/* const sendEmail = async () => {
-    try {
-      const response = await fetch("https://crm-three-green.vercel.app/api/send-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          to: "davi.murroni@gmail.com",
-          subject: "Test email",
-          html: "<h1>This is a test email</h1>",
-        }),
-      });
-
-      if (response.ok) {
-        alert("Email sent successfully");
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send email");
-      }
-    } catch (error) {
-      console.error(error);
-      alert(error.message);
-    }
-  }; */

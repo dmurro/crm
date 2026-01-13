@@ -5,36 +5,44 @@ export const themeOptionsLight = {
   palette: {
     mode: "light",
     primary: {
-      main: "#ff7043", // Pink
-      light: "#ff94c2",
-      dark: "#b0006b",
+      main: "#2563eb", // Professional deep blue
+      light: "#60a5fa",
+      dark: "#1e40af",
       contrastText: "#ffffff",
     },
     secondary: {
-      main: "#f50057", // Red
-      light: "#ff5983",
-      dark: "#bb002f",
+      main: "#8b5cf6", // Modern vibrant purple
+      light: "#a78bfa",
+      dark: "#6d28d9",
       contrastText: "#ffffff",
     },
     background: {
-      default: "#fdf5e6", // Seashell
-      paper: "#ffffff", // White
+      default: "#f8fafc", // Clean soft gray
+      paper: "#ffffff", // Pure white
     },
     text: {
-      primary: "#333333", // Dark Gray
-      secondary: "#666666", // Medium Gray
+      primary: "#1e293b", // Deep slate
+      secondary: "#64748b", // Medium slate
     },
     error: {
-      main: "#f44336", // Red
+      main: "#ef4444", // Modern red
+      light: "#fca5a5",
+      dark: "#dc2626",
     },
     warning: {
-      main: "#ff9800", // Orange
+      main: "#f59e0b", // Amber
+      light: "#fbbf24",
+      dark: "#d97706",
     },
     info: {
-      main: "#2196f3", // Blue
+      main: "#0ea5e9", // Sky blue
+      light: "#38bdf8",
+      dark: "#0284c7",
     },
     success: {
-      main: "#4caf50", // Green
+      main: "#10b981", // Emerald green
+      light: "#34d399",
+      dark: "#059669",
     },
   },
   typography: {
@@ -95,7 +103,7 @@ export const themeOptionsLight = {
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: "#ff7043", // Indigo
+          backgroundColor: "#2563eb", // Deep blue
         },
       },
     },
@@ -114,36 +122,44 @@ export const themeOptionsDark = {
   palette: {
     mode: "dark",
     primary: {
-      main: "#ff7043", // Pink
-      light: "#ff94c2",
-      dark: "#b0006b",
+      main: "#0ea5e9", // Bright cyan-blue
+      light: "#38bdf8",
+      dark: "#0284c7",
       contrastText: "#ffffff",
     },
     secondary: {
-      main: "#f50057", // Red
-      light: "#ff5983",
-      dark: "#bb002f",
+      main: "#a78bfa", // Vibrant purple
+      light: "#c4b5fd",
+      dark: "#7c3aed",
       contrastText: "#ffffff",
     },
     background: {
-      default: "#23232d", // Dark
-      paper: "#1d1d1d", // Slightly lighter dark
+      default: "#0f172a", // Deep slate
+      paper: "#1e293b", // Lighter slate
     },
     text: {
-      primary: "#ffffff", // White
-      secondary: "#bbbbbb", // Light gray
+      primary: "#f1f5f9", // Light slate
+      secondary: "#cbd5e1", // Medium slate
     },
     error: {
-      main: "#f44336", // Red
+      main: "#ef4444", // Modern red
+      light: "#fca5a5",
+      dark: "#dc2626",
     },
     warning: {
-      main: "#ff9800", // Orange
+      main: "#f59e0b", // Amber
+      light: "#fbbf24",
+      dark: "#d97706",
     },
     info: {
-      main: "#2196f3", // Blue
+      main: "#0ea5e9", // Sky blue
+      light: "#38bdf8",
+      dark: "#0284c7",
     },
     success: {
-      main: "#4caf50", // Green
+      main: "#10b981", // Emerald green
+      light: "#34d399",
+      dark: "#059669",
     },
   },
   typography: {
@@ -204,7 +220,7 @@ export const themeOptionsDark = {
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: "#ff7043", // Indigo
+          backgroundColor: "#0ea5e9", // Bright cyan-blue
         },
       },
     },

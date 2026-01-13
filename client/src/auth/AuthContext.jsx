@@ -1,4 +1,6 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
+import { useLogin } from "../services/queries";
+import apiClient from "../services/api";
 
 const AuthContext = createContext();
 
@@ -8,36 +10,69 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const loginMutation = useLogin();
+
+  // Check if user is logged in on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const authData = localStorage.getItem("auth");
+      if (authData) {
+        try {
+          const { jwt } = JSON.parse(authData);
+          if (jwt) {
+            // Validate token by making a test request
+            try {
+              await apiClient.get("/clients");
+              setIsLoggedIn(true);
+            } catch (error) {
+              // Token is invalid, clear it
+              localStorage.removeItem("auth");
+              setIsLoggedIn(false);
+            }
+          } else {
+            setIsLoggedIn(false);
+          }
+        } catch (error) {
+          localStorage.removeItem("auth");
+          setIsLoggedIn(false);
+        }
+      } else {
+        setIsLoggedIn(false);
+      }
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, []);
 
   const login = async (authCredentials, onSuccess) => {
     try {
-      const response = await fetch("https://crm-three-green.vercel.app/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(authCredentials),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message);
-      }
-      const { token } = await response.json();
-      localStorage.setItem("auth", JSON.stringify({ jwt: token }));
+      const result = await loginMutation.mutateAsync(authCredentials);
       setIsLoggedIn(true);
-      setError(null);
       onSuccess();
+      return result;
     } catch (error) {
-      setError(error.message);
       throw error;
     }
   };
 
   const logout = () => {
-    // Add logic to handle logout
+    localStorage.removeItem("auth");
     setIsLoggedIn(false);
   };
 
-  return <AuthContext.Provider value={{ isLoggedIn, login, logout, error }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        login,
+        logout,
+        error: loginMutation.error?.response?.data?.message || loginMutation.error?.message,
+        isLoading,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };

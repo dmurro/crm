@@ -1,8 +1,29 @@
-# React + Vite
+# CRM Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Setup
 
-Currently, two official plugins are available:
+1. Install dependencies:
+```bash
+npm install
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+2. Create a `.env` file in the client directory with the following variable:
+
+```env
+# API URL
+VITE_API_URL=http://localhost:5000
+```
+
+For production, set this to your production API URL.
+
+3. Start the development server:
+```bash
+npm run dev
+```
+
+## Features
+
+- **TanStack React Query**: All API requests are handled through React Query for better caching and error handling
+- **Responsive Design**: Fully responsive layout that works on mobile, tablet, and desktop
+- **Authentication**: JWT-based authentication with token validation
+- **Theme Toggle**: Dark/light mode support

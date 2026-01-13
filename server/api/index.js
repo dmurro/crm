@@ -1,3 +1,3 @@
-import app from "..";
+const app = require("..");
 
-export default app;
+module.exports = app;
