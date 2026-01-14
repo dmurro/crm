@@ -8,6 +8,7 @@ import EmailIcon from "@mui/icons-material/Email";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import CloseIcon from "@mui/icons-material/Close";
+import { registerComponents } from "../components/editor/components";
 
 const Models = () => {
   const theme = useTheme();
@@ -96,97 +97,10 @@ const Models = () => {
             },
           });
 
-          // Add custom base components after editor is ready
+          // Register all custom components after editor is ready
           editor.on("load", () => {
-            const blockManager = editor.BlockManager;
-
-            // 1. Header Component
-            blockManager.add("header-component", {
-              label: "Header",
-              category: "Base Components",
-              content: `
-                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #2563eb; padding: 20px 0;">
-                  <tr>
-                    <td align="center" style="padding: 20px;">
-                      <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0; font-family: Arial, sans-serif;">
-                        Your Company Name
-                      </h1>
-                    </td>
-                  </tr>
-                </table>
-              `,
-            });
-
-            // 2. Text Component
-            blockManager.add("text-component", {
-              label: "Text",
-              category: "Base Components",
-              content: `
-                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #ffffff; padding: 20px;">
-                  <tr>
-                    <td style="padding: 20px; font-family: Arial, sans-serif; font-size: 16px; line-height: 24px; color: #333333;">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                    </td>
-                  </tr>
-                </table>
-              `,
-            });
-
-            // 3. Button Component
-            blockManager.add("button-component", {
-              label: "Button",
-              category: "Base Components",
-              content: `
-                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #ffffff; padding: 20px;">
-                  <tr>
-                    <td align="center" style="padding: 20px;">
-                      <a href="https://example.com" style="display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-family: Arial, sans-serif; font-size: 16px;">
-                        Click Here
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-              `,
-            });
-
-            // 4. Image Component
-            blockManager.add("image-component", {
-              label: "Image",
-              category: "Base Components",
-              content: `
-                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #ffffff; padding: 20px;">
-                  <tr>
-                    <td align="center" style="padding: 10px;">
-                      <img src="https://via.placeholder.com/600x300/2563eb/ffffff?text=Your+Image" alt="Image" width="600" style="max-width: 100%; height: auto; display: block;" />
-                    </td>
-                  </tr>
-                </table>
-              `,
-            });
-
-            // 5. Footer Component
-            blockManager.add("footer-component", {
-              label: "Footer",
-              category: "Base Components",
-              content: `
-                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #1e293b; padding: 30px 20px;">
-                  <tr>
-                    <td align="center" style="padding: 10px;">
-                      <p style="color: #ffffff; font-size: 14px; margin: 0; font-family: Arial, sans-serif;">
-                        © 2024 Your Company. All rights reserved.
-                      </p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td align="center" style="padding: 5px;">
-                      <p style="color: #cbd5e1; font-size: 12px; margin: 0; font-family: Arial, sans-serif;">
-                        123 Street Name, City, Country
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              `,
-            });
+            // Register all components from the registry
+            registerComponents(editor);
           });
 
           grapesEditorRef.current = editor;
