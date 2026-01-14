@@ -15,13 +15,41 @@ const app = express();
 app.use(express.json());
 app.use(bodyParser.json());
 
-// CORS configuration
-app.use(
-  cors({
-    origin: config.corsOrigin,
-    credentials: true,
-  })
-);
+// CORS configuration - Handle preflight requests
+const allowedOrigins = config.corsOrigin ? config.corsOrigin.split(",").map((o) => o.trim()) : ["https://admin.fishplanetlondon.co.uk"];
+
+console.log(`CORS allowed origins: ${allowedOrigins.join(", ")}`);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      console.log("CORS: Request with no origin, allowing");
+      return callback(null, true);
+    }
+
+    console.log(`CORS: Checking origin: ${origin}`);
+
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes("*")) {
+      console.log(`CORS: Origin ${origin} allowed`);
+      callback(null, true);
+    } else {
+      console.log(`CORS: Origin ${origin} NOT allowed. Allowed origins: ${allowedOrigins.join(", ")}`);
+      callback(new Error(`Not allowed by CORS. Origin: ${origin}`));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  exposedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+// Handle preflight requests explicitly
+app.options("*", cors(corsOptions));
+
+// Apply CORS to all routes
+app.use(cors(corsOptions));
 
 // Rate limiting for login endpoint
 const loginLimiter = rateLimit({
@@ -53,7 +81,17 @@ app.use("/email", emailRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+  console.error("Error:", err.message);
   console.error(err.stack);
+
+  // Handle CORS errors
+  if (err.message && err.message.includes("CORS")) {
+    return res.status(403).json({
+      message: err.message,
+      error: "CORS policy violation",
+    });
+  }
+
   res.status(err.status || 500).json({
     message: config.isDevelopment ? err.message : "Internal server error",
   });
