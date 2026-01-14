@@ -8,6 +8,7 @@ const config = require("./config");
 const loginRouter = require("./routes/login");
 const clientsRouter = require("./routes/clients");
 const emailRouter = require("./routes/email");
+const usersRouter = require("./routes/users");
 
 const app = express();
 
@@ -16,15 +17,29 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 // CORS configuration - Handle preflight requests
-const allowedOrigins = config.corsOrigin ? config.corsOrigin.split(",").map((o) => o.trim()) : ["https://admin.fishplanetlondon.co.uk"];
+const allowedOrigins = config.corsOrigin
+  ? config.corsOrigin.split(",").map((o) => o.trim())
+  : config.isDevelopment
+  ? ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"]
+  : ["https://admin.fishplanetlondon.co.uk"];
 
 console.log(`CORS allowed origins: ${allowedOrigins.join(", ")}`);
+console.log(`Environment: ${config.env}`);
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // In development, allow requests with no origin (for testing with Postman, curl, etc.)
+    if (config.isDevelopment && !origin) {
+      console.log("CORS: Request with no origin, allowing (development mode)");
+      return callback(null, true);
+    }
+
+    // In production, require origin
     if (!origin) {
-      console.log("CORS: Request with no origin, allowing");
+      if (config.isProduction) {
+        console.log("CORS: Request with no origin rejected (production mode)");
+        return callback(new Error("CORS: Origin required in production"));
+      }
       return callback(null, true);
     }
 
@@ -78,6 +93,7 @@ app.get("/", (req, res) => {
 app.use("/login", loginLimiter, loginRouter);
 app.use("/clients", clientsRouter);
 app.use("/email", emailRouter);
+app.use("/users", usersRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -97,10 +113,15 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-const PORT = config.port;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} (${config.env} environment)`);
-});
+// Start server only in development (not in Vercel serverless)
+if (config.isDevelopment) {
+  const PORT = config.port;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT} (${config.env} environment)`);
+  });
+} else {
+  // In production (Vercel), the server is handled by serverless functions
+  console.log("Server configured for Vercel serverless (production mode)");
+}
 
 module.exports = app;

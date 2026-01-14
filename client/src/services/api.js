@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://crm-three-green.vercel.app";
+const API_URL = "http://localhost:5000" || "https://crm-three-green.vercel.app";
 
 const apiClient = axios.create({
   baseURL: API_URL,
