@@ -10,7 +10,7 @@ const config = {
   development: {
     mongodbUri: process.env.MONGODB_URI_DEV,
     jwtSecret: process.env.JWT_SECRET_DEV,
-    corsOrigin: process.env.CORS_ORIGIN_DEV || "http://localhost:5173",
+    corsOrigin: "https://admin.fishplanetlondon.co.uk" || process.env.CORS_ORIGIN_DEV || "http://localhost:5173",
     port: process.env.PORT || 5000,
     email: {
       host: process.env.EMAIL_HOST,
