@@ -1,10 +1,10 @@
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper, useTheme, useMediaQuery } from "@mui/material";
-import { clientColumns } from "./clientsColumns";
+import { clientColumns, getDisplayValue } from "./clientsColumns";
 
 const ClientsTable = ({ clients, totalCount, page, rowsPerPage, onPageChange, onRowsPerPageChange }) => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-
+  console.log('clients', clients);
   return (
     <>
       <Paper
@@ -57,7 +57,7 @@ const ClientsTable = ({ clients, totalCount, page, rowsPerPage, onPageChange, on
             <TableBody>
               {clients.map((client) => (
                 <TableRow
-                  key={client.CONTACT_ID}
+                  key={client._id}
                   sx={{
                     "&:hover": {
                       backgroundColor: (theme) => (theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)"),
@@ -78,9 +78,9 @@ const ClientsTable = ({ clients, totalCount, page, rowsPerPage, onPageChange, on
                         textOverflow: "ellipsis",
                         whiteSpace: isSmallScreen ? "nowrap" : "normal",
                       }}
-                      title={client[column.id]}
+                      title={getDisplayValue(client, column)}
                     >
-                      {column.format ? column.format(client[column.id]) : client[column.id] || "N/A"}
+                      {getDisplayValue(client, column)}
                     </TableCell>
                   ))}
                 </TableRow>

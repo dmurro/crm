@@ -10,6 +10,8 @@ function Clients() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { data: clients = [], isLoading, error } = useClients();
+  console.log(clients);
+
   const { page, rowsPerPage, handleChangePage, handleChangeRowsPerPage, getPaginatedData } = useClientsPagination(8);
 
   const paginatedClients = getPaginatedData(clients);

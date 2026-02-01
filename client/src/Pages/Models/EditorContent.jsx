@@ -105,10 +105,15 @@ const EditorContent = ({
         return {
             appearance: {
                 theme: "modern_light",
-                panels: { tools: { dock: "left" } },
+                panels: {
+                    tools: { dock: "left" },
+                    properties: { dock: "right" }, // 👈 importante
+                },
             },
             displayMode: "email",
+
             features: {
+                columnResize: true, // 👈 abilita esplicitamente
                 colorPicker: {
                     presets: selectedConfig
                         ? [
@@ -121,7 +126,13 @@ const EditorContent = ({
                         ].filter(Boolean)
                         : undefined,
                 },
+                imageEditor: {
+                    tools: {
+                        resize: true,
+                    },
+                },
             },
+
             fonts: {
                 showDefaultFonts: true,
                 customFonts: selectedConfig?.fontFamily

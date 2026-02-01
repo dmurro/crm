@@ -18,7 +18,6 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
       const authData = localStorage.getItem("auth");
       if (authData) {
-        console.log(authData)
         try {
           const { jwt } = JSON.parse(authData);
           if (jwt) {
@@ -49,7 +48,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (authCredentials, onSuccess) => {
     const result = await loginMutation.mutateAsync(authCredentials);
-    console.log(authCredentials)
     setIsLoggedIn(true);
     onSuccess();
     return result;

@@ -14,7 +14,8 @@ export const useClientsPagination = (initialRowsPerPage = 10) => {
   };
 
   const getPaginatedData = (data) => {
-    return data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    const list = Array.isArray(data) ? data : data?.data ?? [];
+    return list.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
   };
 
   return {

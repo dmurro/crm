@@ -1,22 +1,34 @@
-// Column definitions for the clients table
+// Helpers for formatting
+const formatDate = (date) => (date ? new Date(date).toLocaleDateString() : "—");
+const formatBool = (v) => (v === true ? "Yes" : v === false ? "No" : "—");
+
+// Column definitions for the clients table (matches server client model)
 export const clientColumns = [
-  { id: "CONTACT_ID", label: "Contact ID" },
-  { id: "EMAIL", label: "Email" },
-  { id: "LASTNAME", label: "Last Name" },
-  { id: "FIRSTNAME", label: "First Name" },
-  { id: "WHATSAPP", label: "WhatsApp" },
-  { id: "LANDLINE_NUMBER", label: "Landline Number" },
-  {
-    id: "ADDED_TIME",
-    label: "Added Time",
-    format: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
-  },
-  {
-    id: "MODIFIED_TIME",
-    label: "Modified Time",
-    format: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
-  },
+  { id: "email", label: "Email" },
+  { id: "firstName", label: "First Name" },
+  { id: "lastName", label: "Last Name" },
+  { id: "phone", label: "Phone" },
+  { id: "status", label: "Status" },
+  { id: "points", label: "Points" },
+  { id: "visits", label: "Visits" },
+  { id: "source", label: "Source" },
+  { id: "channel", label: "Channel" },
+  { id: "consent", label: "Consent", format: formatBool },
+  { id: "creditBalance", label: "Credit Balance" },
+  { id: "totalAmountSpent", label: "Total Spent" },
+  { id: "memberSince", label: "Member Since", format: formatDate },
+  { id: "lastPurchase", label: "Last Purchase", format: formatDate },
+  { id: "customerId", label: "Customer ID" },
+  { id: "comment", label: "Comment" },
 ];
 
 // Priority columns for mobile view (most important fields)
-export const priorityColumns = ["CONTACT_ID", "EMAIL", "FIRSTNAME", "LASTNAME"];
+export const priorityColumns = ["email", "firstName", "lastName", "phone", "status", "points"];
+
+/** Get display value for a cell (handles null/empty and uses column format) */
+export const getDisplayValue = (client, column) => {
+  const v = client[column.id];
+  if (column.format) return column.format(v);
+  if (v == null || v === "") return "—";
+  return v;
+};

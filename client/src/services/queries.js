@@ -64,8 +64,10 @@ export const useClients = () => {
   return useQuery({
     queryKey: ["clients"],
     queryFn: async () => {
-      const response = await apiClient.get("/clients");
-      return response.data;
+      const response = await apiClient.get("/clients", {
+        params: { limit: 5000 },
+      });
+      return response.data?.data ?? [];
     },
     staleTime: 5 * 60 * 1000,
     retry: 1,

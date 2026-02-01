@@ -1,5 +1,5 @@
 import { Card, CardContent, Typography, Box, Divider, TablePagination, useTheme } from "@mui/material";
-import { clientColumns, priorityColumns } from "./clientsColumns";
+import { clientColumns, priorityColumns, getDisplayValue } from "./clientsColumns";
 
 const ClientsCard = ({ clients, totalCount, page, rowsPerPage, onPageChange, onRowsPerPageChange }) => {
   const theme = useTheme();
@@ -25,7 +25,7 @@ const ClientsCard = ({ clients, totalCount, page, rowsPerPage, onPageChange, onR
       >
         {clients.map((client) => (
           <Card
-            key={client?.CONTACT_ID}
+            key={client?._id}
             sx={{
               boxShadow: 2,
               "&:hover": {
@@ -59,7 +59,7 @@ const ClientsCard = ({ clients, totalCount, page, rowsPerPage, onPageChange, onR
                         wordBreak: "break-word",
                       }}
                     >
-                      {formatValue(columnId, client[columnId])}
+                      {formatValue(client, columnId)}
                     </Typography>
                   </Box>
                 ))}
