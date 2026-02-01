@@ -1,8 +1,7 @@
-import { Card, CardContent, Typography, Box, Divider, TablePagination, useTheme } from "@mui/material";
-import { clientColumns, priorityColumns, getDisplayValue } from "./clientsColumns";
+import { Card, CardContent, Typography, Box, Divider, TablePagination } from "@mui/material";
+import { clientColumns, priorityColumns } from "./clientsColumns";
 
 const ClientsCard = ({ clients, totalCount, page, rowsPerPage, onPageChange, onRowsPerPageChange }) => {
-  const theme = useTheme();
 
   const getColumnLabel = (columnId) => {
     const column = clientColumns.find((col) => col.id === columnId);

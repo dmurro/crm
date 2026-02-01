@@ -119,9 +119,9 @@ const Campaign = () => {
     });
     setSelectedClients(
       campaign.recipientSource === "clients"
-        ? clients
-          .filter((c) => campaign.recipients.includes(c.EMAIL))
-          .map((c) => c.EMAIL)
+        ? (clients || [])
+          .filter((c) => campaign.recipients.includes(c.email))
+          .map((c) => c.email)
         : []
     );
     setRecipientTab(campaign.recipientSource === "clients" ? 1 : 0);
@@ -133,9 +133,13 @@ const Campaign = () => {
       return;
     }
 
-    if (formData.recipients.length === 0) {
+    if (
+      formData.recipientSource !== "all_clients" &&
+      formData.recipients.length === 0
+    ) {
       return;
     }
+
 
     if (editingCampaign) {
       updateMutation.mutate(
@@ -221,20 +225,46 @@ const Campaign = () => {
     });
   };
 
+  const handleSelectAllClients = (checked) => {
+    const allEmails = (clients || []).map((c) => c.email).filter(Boolean);
+    const newSelected = checked ? allEmails : [];
+    setSelectedClients(newSelected);
+    setFormData({
+      ...formData,
+      recipients: newSelected,
+      recipientSource: "clients",
+    });
+  };
+
   const handleRecipientTabChange = (event, newValue) => {
     setRecipientTab(newValue);
+
+    // MANUAL
     if (newValue === 0) {
+      setSelectedClients([]);
       setFormData({
         ...formData,
         recipients: [],
         recipientSource: "manual",
       });
-      setSelectedClients([]);
-    } else {
+    }
+
+    // SELECT CLIENTS
+    if (newValue === 1) {
       setFormData({
         ...formData,
         recipients: selectedClients,
         recipientSource: "clients",
+      });
+    }
+
+    // ALL CLIENTS (SERVER SIDE)
+    if (newValue === 2) {
+      setSelectedClients([]);
+      setFormData({
+        ...formData,
+        recipients: ["__ALL__"], // placeholder
+        recipientSource: "all_clients",
       });
     }
   };
@@ -298,7 +328,7 @@ const Campaign = () => {
             No campaigns yet
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Click "Create Campaign" to get started
+            Click Create Campaign to get started
           </Typography>
         </Box>
       ) : (
@@ -495,9 +525,11 @@ const Campaign = () => {
               <Tabs value={recipientTab} onChange={handleRecipientTabChange}>
                 <Tab label="Manual" />
                 <Tab label="From Clients" />
+                <Tab label="All Clients" />
               </Tabs>
+
               <Box sx={{ mt: 2 }}>
-                {recipientTab === 0 ? (
+                {recipientTab === 0 && (
                   <TextField
                     label="Email Addresses"
                     value={formData.recipients.join("\n")}
@@ -508,22 +540,46 @@ const Campaign = () => {
                     fullWidth
                     helperText="Enter one email address per line"
                   />
-                ) : (
+                )}
+                {recipientTab === 1 && (
                   <Box sx={{ maxHeight: 300, overflow: "auto" }}>
                     <List>
+                      <ListItem disablePadding sx={{ borderBottom: 1, borderColor: "divider" }}>
+                        <ListItemButton
+                          onClick={() => handleSelectAllClients(selectedClients.length !== clients.length)}
+                          dense
+                        >
+                          <Checkbox
+                            checked={clients.length > 0 && selectedClients.length === clients.length}
+                            indeterminate={selectedClients.length > 0 && selectedClients.length < clients.length}
+                            onChange={(e) => handleSelectAllClients(e.target.checked)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <ListItemText
+                            primary="Select all"
+                            primaryTypographyProps={{ fontWeight: 600 }}
+                            secondary={`${selectedClients.length} of ${clients.length} selected`}
+                          />
+                        </ListItemButton>
+                      </ListItem>
                       {clients.map((client) => (
-                        <ListItem key={client.EMAIL} disablePadding>
-                          <ListItemButton onClick={() => toggleClientSelection(client.EMAIL)}>
-                            <Checkbox checked={selectedClients.includes(client.EMAIL)} />
+                        <ListItem key={client._id || client.email} disablePadding>
+                          <ListItemButton onClick={() => toggleClientSelection(client.email)}>
+                            <Checkbox checked={selectedClients.includes(client.email)} />
                             <ListItemText
-                              primary={client.EMAIL}
-                              secondary={`${client.FIRSTNAME} ${client.LASTNAME}`}
+                              primary={client.email}
+                              secondary={[client.firstName, client.lastName].filter(Boolean).join(" ") || "—"}
                             />
                           </ListItemButton>
                         </ListItem>
                       ))}
                     </List>
                   </Box>
+                )}
+                {recipientTab === 2 && (
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    All clients will be selected
+                  </Typography>
                 )}
               </Box>
             </Box>

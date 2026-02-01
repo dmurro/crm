@@ -5,44 +5,72 @@ const Campaign = require("../models/campaigns");
 const Model = require("../models/models");
 const emailService = require("./services/sendMail");
 const { authenticateToken } = require("../middleware/auth");
+const Client = require("../models/clients");
+
 
 // Validation middleware
 const createCampaignValidation = [
-  body("name").trim().notEmpty().withMessage("Campaign name is required").isLength({ max: 200 }).withMessage("Name must be less than 200 characters"),
-  body("modelId").isMongoId().withMessage("Invalid modelId format"),
-  body("subject").trim().notEmpty().withMessage("Email subject is required").isLength({ max: 500 }).withMessage("Subject must be less than 500 characters"),
+  body("name")
+    .trim()
+    .notEmpty().withMessage("Campaign name is required")
+    .isLength({ max: 200 }).withMessage("Name must be less than 200 characters"),
+
+  body("modelId")
+    .isMongoId().withMessage("Invalid modelId format"),
+
+  body("subject")
+    .trim()
+    .notEmpty().withMessage("Email subject is required")
+    .isLength({ max: 500 }).withMessage("Subject must be less than 500 characters"),
+
+  body("recipientSource")
+    .optional()
+    .isIn(["manual", "clients", "all_clients"])
+    .withMessage("recipientSource must be 'manual', 'clients', or 'all_clients'"),
+
   body("recipients")
-    .isArray({ min: 1 })
-    .withMessage("Recipients array is required and must not be empty")
-    .custom((recipients) => {
+    .isArray()
+    .custom((recipients, { req }) => {
+      if (req.body.recipientSource === "all_clients") {
+        // placeholder ok
+        return true;
+      }
+      if (!recipients || recipients.length === 0) {
+        throw new Error("Recipients array must not be empty");
+      }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const allValid = recipients.every((email) => emailRegex.test(email));
+      const allValid = recipients.every(email => emailRegex.test(email));
       if (!allValid) {
         throw new Error("All recipients must be valid email addresses");
       }
       return true;
     }),
-  body("recipientSource").optional().isIn(["manual", "clients"]).withMessage("recipientSource must be 'manual' or 'clients'"),
 ];
+
 
 const updateCampaignValidation = [
   body("name").optional().trim().isLength({ max: 200 }).withMessage("Name must be less than 200 characters"),
   body("modelId").optional().isMongoId().withMessage("Invalid modelId format"),
   body("subject").optional().trim().isLength({ max: 500 }).withMessage("Subject must be less than 500 characters"),
+  body("recipientSource")
+  .optional()
+  .isIn(["manual", "clients", "all_clients"])
+  .withMessage("recipientSource must be 'manual', 'clients', or 'all_clients'"),
+
   body("recipients")
     .optional()
-    .isArray({ min: 1 })
-    .withMessage("Recipients array must not be empty")
-    .custom((recipients) => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const allValid = recipients.every((email) => emailRegex.test(email));
-      if (!allValid) {
-        throw new Error("All recipients must be valid email addresses");
+    .isArray()
+    .custom((recipients, { req }) => {
+      if (req.body.recipientSource === "all_clients") return true;
+      if (!recipients || recipients.length === 0) {
+        throw new Error("Recipients array must not be empty");
       }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const allValid = recipients.every(email => emailRegex.test(email));
+      if (!allValid) throw new Error("All recipients must be valid email addresses");
       return true;
-    }),
-  body("recipientSource").optional().isIn(["manual", "clients"]).withMessage("recipientSource must be 'manual' or 'clients'"),
-];
+    })
+]
 
 /**
  * GET /campaigns
@@ -136,19 +164,30 @@ campaignsRouter.post("/", authenticateToken, createCampaignValidation, async (re
     }
 
     // Deduplicate recipients
-    const uniqueRecipients = [...new Set(req.body.recipients)];
+    let recipients = [];
+    let total = 0;
+
+    if (req.body.recipientSource === "all_clients") {
+      req.body.recipients = ["__ALL__"];
+    }
+
+    if (req.body.recipientSource !== "all_clients") {
+      recipients = [...new Set(req.body.recipients)];
+      total = recipients.length;
+    }
 
     const campaignData = {
       ...req.body,
-      recipients: uniqueRecipients,
+      recipients,
       status: "draft",
       stats: {
-        total: uniqueRecipients.length,
+        total,
         sent: 0,
         failed: 0,
         errors: [],
       },
     };
+
 
     const campaign = new Campaign(campaignData);
     await campaign.save();
@@ -315,20 +354,37 @@ campaignsRouter.post("/:id/send", authenticateToken, async (req, res) => {
 
     // Send emails
     try {
+      let recipients = campaign.recipients;
+
+      if (campaign.recipientSource === "all_clients") {
+        const clients = await Client.find(
+          { email: { $exists: true, $ne: "" } },
+          { email: 1, _id: 0 }
+        );
+
+        recipients = clients.map((c) => c.email);
+      }
+
+      if (!recipients.length) {
+        throw new Error("No recipients found for this campaign");
+      }
+
       const result = await emailService.sendBulkEmail({
-        recipients: campaign.recipients,
+        recipients,
         subject: campaign.subject,
         html: emailHtml,
       });
 
+
       // Update campaign with results
       campaign.status = result.failed === result.total ? "failed" : "sent";
       campaign.stats = {
-        total: result.total,
+        total: recipients.length,
         sent: result.successful,
         failed: result.failed,
         errors: result.errors,
       };
+      
       campaign.sentAt = new Date();
       await campaign.save();
 

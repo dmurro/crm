@@ -19,21 +19,15 @@ const campaignSchema = new mongoose.Schema(
       trim: true,
       maxlength: 500,
     },
+    recipientSource: {
+      type: String,
+      enum: ["manual", "clients", "all_clients"],
+      default: "manual",
+    },
     recipients: {
       type: [String],
       required: true,
-      validate: {
-        validator: function (v) {
-          return Array.isArray(v) && v.length > 0;
-        },
-        message: "Recipients array is required and must not be empty",
-      },
-    },
-    recipientSource: {
-      type: String,
-      enum: ["manual", "clients"],
-      default: "manual",
-    },
+    },    
     status: {
       type: String,
       enum: ["draft", "sending", "sent", "failed"],
