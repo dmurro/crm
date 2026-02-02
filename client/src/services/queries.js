@@ -234,7 +234,36 @@ export const useSendCampaign = () => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["campaigns"] });
       queryClient.invalidateQueries({ queryKey: ["campaigns", variables] });
+      queryClient.invalidateQueries({ queryKey: ["campaignRecipients", variables] });
     },
+  });
+};
+
+export const useCampaignRecipients = (campaignId, { page = 1, limit = 25 } = {}) => {
+  return useQuery({
+    queryKey: ["campaignRecipients", campaignId, page, limit],
+    queryFn: async () => {
+      const params = new URLSearchParams({ page, limit });
+      const response = await apiClient.get(`/campaigns/${campaignId}/recipients?${params}`);
+      return {
+        recipients: response.data.recipients || [],
+        pagination: response.data.pagination || { page: 1, limit: 25, total: 0, pages: 0 },
+      };
+    },
+    enabled: !!campaignId,
+    staleTime: 15000,
+  });
+};
+
+export const useClientsCount = (params = {}) => {
+  return useQuery({
+    queryKey: ["clients", "count", params],
+    queryFn: async () => {
+      const queryString = new URLSearchParams(params).toString();
+      const response = await apiClient.get(`/clients/count?${queryString}`);
+      return response.data.count ?? 0;
+    },
+    staleTime: 5 * 60 * 1000,
   });
 };
 

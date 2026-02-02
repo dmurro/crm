@@ -28,6 +28,14 @@ import {
   ListItemText,
   ListItemButton,
   LinearProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Paper,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EmailIcon from "@mui/icons-material/Email";
@@ -42,6 +50,8 @@ import {
   useUpdateCampaign,
   useDeleteCampaign,
   useSendCampaign,
+  useCampaignRecipients,
+  useClientsCount,
   useModels,
   useClients,
 } from "../services/queries";
@@ -57,6 +67,8 @@ const Campaign = () => {
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [recipientTab, setRecipientTab] = useState(0);
   const [selectedClients, setSelectedClients] = useState([]);
+  const [recipientsPage, setRecipientsPage] = useState(1);
+  const [recipientsPerPage] = useState(25);
   const [formData, setFormData] = useState({
     name: "",
     modelId: "",
@@ -69,6 +81,11 @@ const Campaign = () => {
   const { data: campaigns = [], isLoading: campaignsLoading, error: campaignsError } = useCampaigns();
   const { data: models = [] } = useModels({ limit: 100 });
   const { data: clients = [] } = useClients();
+  const { data: clientsCount } = useClientsCount({ hasEmail: "true" });
+  const { data: recipientsData, isLoading: recipientsLoading } = useCampaignRecipients(
+    selectedCampaign?._id,
+    { page: recipientsPage, limit: recipientsPerPage }
+  );
 
   // Mutations
   const createMutation = useCreateCampaign();
@@ -173,6 +190,7 @@ const Campaign = () => {
 
   const handleViewDetails = (campaign) => {
     setSelectedCampaign(campaign);
+    setRecipientsPage(1);
     setDetailsDialogOpen(true);
   };
 
@@ -185,7 +203,8 @@ const Campaign = () => {
     if (!selectedCampaign) return;
 
     sendMutation.mutate(selectedCampaign._id, {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        setSelectedCampaign(data);
         setSendDialogOpen(false);
         setDetailsDialogOpen(false);
       },
@@ -424,7 +443,7 @@ const Campaign = () => {
                       Recipients
                     </Typography>
                     <Typography variant="body2" sx={{ mt: 0.5 }}>
-                      {campaign.recipients?.length || 0} recipients
+                      {campaign.stats?.total ?? campaign.recipients?.length ?? 0} recipients
                     </Typography>
                   </Box>
 
@@ -578,7 +597,9 @@ const Campaign = () => {
                 )}
                 {recipientTab === 2 && (
                   <Typography variant="body2" sx={{ mt: 0.5 }}>
-                    All clients will be selected
+                    {typeof clientsCount === "number"
+                      ? `All contacts with email will be included (~${clientsCount} recipients)`
+                      : "All contacts with email will be included"}
                   </Typography>
                 )}
               </Box>
@@ -634,7 +655,9 @@ const Campaign = () => {
                 <Typography variant="caption" sx={{ fontWeight: 600, color: "text.secondary", textTransform: "uppercase" }}>
                   Recipients
                 </Typography>
-                <Typography variant="body1">{selectedCampaign.recipients?.length || 0} recipients</Typography>
+                <Typography variant="body1">
+                  {selectedCampaign.stats?.total ?? selectedCampaign.recipients?.length ?? 0} recipients
+                </Typography>
               </Box>
               {selectedCampaign.stats && (
                 <Box>
@@ -646,6 +669,71 @@ const Campaign = () => {
                   </Typography>
                   <Typography variant="body2">Sent: {selectedCampaign.stats.sent || 0}</Typography>
                   <Typography variant="body2">Failed: {selectedCampaign.stats.failed || 0}</Typography>
+                </Box>
+              )}
+              {(selectedCampaign.status === "sending" || selectedCampaign.status === "sent") && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: "text.secondary", textTransform: "uppercase" }}>
+                    Stato per destinatario
+                  </Typography>
+                  <TableContainer component={Paper} variant="outlined" sx={{ mt: 1, maxHeight: 280 }}>
+                    <Table size="small" stickyHeader>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>Stato</TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>Data invio</TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>Errore</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {recipientsLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={4} align="center" sx={{ py: 2 }}>
+                              <CircularProgress size={24} />
+                            </TableCell>
+                          </TableRow>
+                        ) : !recipientsData?.recipients?.length ? (
+                          <TableRow>
+                            <TableCell colSpan={4} align="center" sx={{ py: 2 }} color="text.secondary">
+                              Nessun destinatario
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          recipientsData.recipients.map((rec) => (
+                            <TableRow key={rec._id}>
+                              <TableCell>{rec.email}</TableCell>
+                              <TableCell>
+                                <Chip
+                                  label={rec.status}
+                                  size="small"
+                                  color={rec.status === "sent" ? "success" : rec.status === "failed" ? "error" : "default"}
+                                />
+                              </TableCell>
+                              <TableCell>
+                                {rec.sentAt ? new Date(rec.sentAt).toLocaleString() : "—"}
+                              </TableCell>
+                              <TableCell sx={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {rec.error || "—"}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                  {recipientsData?.pagination && recipientsData.pagination.pages > 1 && (
+                    <TablePagination
+                      component="div"
+                      count={recipientsData.pagination.total}
+                      page={recipientsPage - 1}
+                      onPageChange={(_, newPage) => setRecipientsPage(newPage + 1)}
+                      rowsPerPage={recipientsPerPage}
+                      rowsPerPageOptions={[25, 50]}
+                      labelRowsPerPage="Righe:"
+                      sx={{ borderTop: 1, borderColor: "divider" }}
+                    />
+                  )}
                 </Box>
               )}
               {selectedCampaign.stats?.errors && selectedCampaign.stats.errors.length > 0 && (
@@ -684,12 +772,17 @@ const Campaign = () => {
               <Typography>Are you sure you want to send this campaign?</Typography>
               <Box>
                 <Typography variant="subtitle2">Campaign: {selectedCampaign.name}</Typography>
-                <Typography variant="body2">Recipients: {selectedCampaign.recipients?.length || 0}</Typography>
+                <Typography variant="body2">
+                  Recipients: {selectedCampaign.stats?.total ?? selectedCampaign.recipients?.length ?? 0}
+                </Typography>
               </Box>
+              <Typography variant="body2" color="text.secondary">
+                Emails will be sent gradually (max 380/hour). You can track status in campaign details.
+              </Typography>
               {isSending && (
                 <Box>
                   <Typography variant="body2" sx={{ mb: 1 }}>
-                    Sending emails...
+                    Enqueueing campaign...
                   </Typography>
                   <LinearProgress />
                 </Box>

@@ -130,6 +130,27 @@ clientsRouter.get("/stats", authenticateToken, async (req, res) => {
 });
 
 /**
+ * @route   GET /clients/count
+ * @desc    Get count of clients (e.g. with hasEmail=true for campaign "all clients" estimate)
+ * @access  Private
+ */
+clientsRouter.get("/count", authenticateToken, async (req, res) => {
+  try {
+    const hasEmail = req.query.hasEmail === "true";
+    const query = hasEmail ? { email: { $exists: true, $ne: "" } } : {};
+    const total = await Client.countDocuments(query);
+    res.json({ success: true, count: total });
+  } catch (error) {
+    console.error("Error counting clients:", error);
+    res.status(500).json({
+      success: false,
+      error: "Server error",
+      message: error.message,
+    });
+  }
+});
+
+/**
  * @route   GET /clients/:id
  * @desc    Get single client by ID
  * @access  Private

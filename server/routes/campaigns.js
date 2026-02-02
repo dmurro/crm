@@ -2,10 +2,14 @@ const express = require("express");
 const { body, validationResult, query } = require("express-validator");
 const campaignsRouter = express.Router();
 const Campaign = require("../models/campaigns");
+const CampaignRecipient = require("../models/campaignRecipients");
 const Model = require("../models/models");
 const emailService = require("./services/sendMail");
 const { authenticateToken } = require("../middleware/auth");
 const Client = require("../models/clients");
+const { startSendLoopIfNeeded } = require("../jobs/campaignSendJob");
+
+const BATCH_SIZE = 500;
 
 
 // Validation middleware
@@ -110,6 +114,52 @@ campaignsRouter.get("/", authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Failed to fetch campaigns",
+    });
+  }
+});
+
+/**
+ * GET /campaigns/:id/recipients
+ * Get paginated recipients (per-email status) for a campaign
+ */
+campaignsRouter.get("/:id/recipients", authenticateToken, async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({
+        success: false,
+        error: "Campaign not found",
+      });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const skip = (page - 1) * limit;
+
+    const [recipients, total] = await Promise.all([
+      CampaignRecipient.find({ campaignId: req.params.id })
+        .sort({ createdAt: 1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      CampaignRecipient.countDocuments({ campaignId: req.params.id }),
+    ]);
+
+    res.json({
+      success: true,
+      recipients,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching campaign recipients:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch campaign recipients",
     });
   }
 });
@@ -293,7 +343,10 @@ campaignsRouter.delete("/:id", authenticateToken, async (req, res) => {
       });
     }
 
-    await Campaign.findByIdAndDelete(req.params.id);
+    await Promise.all([
+      CampaignRecipient.deleteMany({ campaignId: req.params.id }),
+      Campaign.findByIdAndDelete(req.params.id),
+    ]);
 
     res.json({
       success: true,
@@ -310,7 +363,7 @@ campaignsRouter.delete("/:id", authenticateToken, async (req, res) => {
 
 /**
  * POST /campaigns/:id/send
- * Send a campaign
+ * Enqueue a campaign for sending (async; cron job sends emails at 380/h max)
  */
 campaignsRouter.post("/:id/send", authenticateToken, async (req, res) => {
   try {
@@ -329,7 +382,6 @@ campaignsRouter.post("/:id/send", authenticateToken, async (req, res) => {
       });
     }
 
-    // Get HTML content from model
     const model = campaign.modelId;
     if (!model) {
       return res.status(400).json({
@@ -338,7 +390,6 @@ campaignsRouter.post("/:id/send", authenticateToken, async (req, res) => {
       });
     }
 
-    // Use htmlContent for email (content is JSON design for the editor)
     if (!model.htmlContent) {
       return res.status(400).json({
         success: false,
@@ -346,66 +397,85 @@ campaignsRouter.post("/:id/send", authenticateToken, async (req, res) => {
       });
     }
 
-    const emailHtml = model.htmlContent;
+    const campaignId = campaign._id;
+    let totalEnqueued = 0;
 
-    // Update campaign status to 'sending'
+    if (campaign.recipientSource === "all_clients") {
+      // Stream clients with cursor; insert CampaignRecipient in batches (no full fetch)
+      const cursor = Client.find(
+        { email: { $exists: true, $ne: "" } }
+      )
+        .select({ email: 1 })
+        .lean()
+        .cursor();
+
+      let batch = [];
+      for await (const doc of cursor) {
+        if (doc.email) {
+          batch.push({
+            campaignId,
+            email: doc.email,
+            status: "pending",
+          });
+        }
+        if (batch.length >= BATCH_SIZE) {
+          await CampaignRecipient.insertMany(batch);
+          totalEnqueued += batch.length;
+          batch = [];
+        }
+      }
+      if (batch.length) {
+        await CampaignRecipient.insertMany(batch);
+        totalEnqueued += batch.length;
+      }
+    } else {
+      // manual or clients: use campaign.recipients, dedupe, insert in batches
+      const emails = [...new Set(campaign.recipients.filter((e) => e && e !== "__ALL__"))];
+      if (!emails.length) {
+        return res.status(400).json({
+          success: false,
+          error: "No recipients found for this campaign",
+        });
+      }
+      for (let i = 0; i < emails.length; i += BATCH_SIZE) {
+        const chunk = emails.slice(i, i + BATCH_SIZE).map((email) => ({
+          campaignId,
+          email,
+          status: "pending",
+        }));
+        await CampaignRecipient.insertMany(chunk);
+        totalEnqueued += chunk.length;
+      }
+    }
+
+    if (totalEnqueued === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "No recipients found for this campaign",
+      });
+    }
+
     campaign.status = "sending";
+    campaign.stats = {
+      total: totalEnqueued,
+      sent: 0,
+      failed: 0,
+      errors: [],
+    };
     await campaign.save();
 
-    // Send emails
-    try {
-      let recipients = campaign.recipients;
+    startSendLoopIfNeeded();
 
-      if (campaign.recipientSource === "all_clients") {
-        const clients = await Client.find(
-          { email: { $exists: true, $ne: "" } },
-          { email: 1, _id: 0 }
-        );
-
-        recipients = clients.map((c) => c.email);
-      }
-
-      if (!recipients.length) {
-        throw new Error("No recipients found for this campaign");
-      }
-
-      const result = await emailService.sendBulkEmail({
-        recipients,
-        subject: campaign.subject,
-        html: emailHtml,
-      });
-
-
-      // Update campaign with results
-      campaign.status = result.failed === result.total ? "failed" : "sent";
-      campaign.stats = {
-        total: recipients.length,
-        sent: result.successful,
-        failed: result.failed,
-        errors: result.errors,
-      };
-      
-      campaign.sentAt = new Date();
-      await campaign.save();
-
-      res.json({
-        success: true,
-        campaign,
-        sendResult: result,
-      });
-    } catch (error) {
-      // Update campaign status to failed
-      campaign.status = "failed";
-      campaign.stats.errors.push({ error: error.message });
-      await campaign.save();
-
-      throw error;
-    }
+    res.status(202).json({
+      success: true,
+      campaign,
+      message: "Campaign enqueued for sending. Emails will be sent gradually (max 380/hour).",
+    });
   } catch (error) {
-    console.error("Error sending campaign:", error);
+    console.error("Error enqueueing campaign:", error);
     res.status(500).json({
       success: false,
-      error: error.message || "Failed to send campaign",
+      error: error.message || "Failed to enqueue campaign",
     });
   }
 });
